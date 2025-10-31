@@ -16,12 +16,27 @@ const IntroOverlay = ({ show, isLeaving = false, onAbout }: Props) => {
                 isLeaving ? styles.rootLeaving : "",
             ].join(" ")}
             aria-hidden={!show}
+            style={
+                {
+                    ["--logosDelay" as any]: "140ms",
+                    ["--linksDelay" as any]: "380ms",
+                } as React.CSSProperties
+            }
         >
             <div className={styles.card}>
-                {/* hero logos */}
                 <div className={styles.heroLogos} aria-hidden>
-                    <img src="/images/olympic.svg" alt="" className={styles.logoOlympic} />
-                    <img src="/images/gt.svg" alt="" className={styles.logoGT} />
+                    <img
+                        src="/images/olympic.svg"
+                        alt=""
+                        className={`${styles.logo} ${styles.logoOlympic}`}
+                        style={{ ["--i" as any]: 0 }}
+                    />
+                    <img
+                        src="/images/gt.svg"
+                        alt=""
+                        className={`${styles.logo} ${styles.logoGT}`}
+                        style={{ ["--i" as any]: 1 }}
+                    />
                 </div>
 
                 <p className={styles.line} style={{ ["--d" as any]: "0ms" }}>

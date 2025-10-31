@@ -11,7 +11,8 @@
     transform: translateY(-6vh);
 }
 :root {
-    --linksDelay: 480ms; 
+    --linksDelay: 480ms;
+    --logosDelay: 180ms;
     --i: 0;            
 }
 .show { opacity: 1; filter: brightness(1); }
@@ -232,8 +233,8 @@
     opacity: 0;
     transform: translateY(6px) scale(0.995);
     filter: blur(2px);
-    animation: heroIn 420ms cubic-bezier(.2,.8,.25,1) forwards;
-    animation-delay: 0ms;
+    animation: heroIn 520ms cubic-bezier(.2,.8,.25,1) forwards;
+    animation-delay: var(--logosDelay, 250ms);
 }
 
 @keyframes heroIn {
