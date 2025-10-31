@@ -1,0 +1,116 @@
+﻿.wrap {
+    position: relative;
+    z-index: 10;
+    margin: 5.5rem auto 0;
+    max-width: min(92vw, 840px);
+    padding: 0 1rem;
+    display: grid;
+    place-items: center;
+    pointer-events: auto;
+}
+
+.card {
+    pointer-events: auto;
+    background: linear-gradient(180deg, hsl(210 40% 10% / 0.8), hsl(210 35% 8% / 0.85));
+    border: 1px solid hsl(195 70% 40% / 0.25);
+    border-radius: 26px;
+    box-shadow:
+            0 20px 80px hsl(210 60% 2% / 0.45),
+            inset 0 1px 0 hsl(0 0% 100% / 0.05);
+    backdrop-filter: blur(10px);
+    padding: clamp(24px, 4vw, 40px);
+    text-align: center;
+    opacity: 0;
+    transform: translateY(22px) scale(0.992);
+    filter: blur(3px) brightness(0.9);
+    animation: aboutIn 640ms cubic-bezier(.18,.88,.24,1.08) forwards,
+               aboutGlow 1600ms ease-out 120ms both;
+}
+
+@keyframes aboutIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: none;
+    }
+}
+
+@keyframes aboutGlow {
+      0%   { box-shadow: 0 20px 80px hsl(210 60% 2% / 0.45); }
+      60%  { box-shadow: 0 30px 120px hsl(195 80% 55% / 0.12), 0 20px 80px hsl(210 60% 2% / 0.45); }
+      100% { box-shadow: 0 20px 80px hsl(210 60% 2% / 0.45); }
+    }
+
+.line {
+    --from: hsl(191 100% 90%);
+    --to: hsl(188 90% 68%);
+    font-family: var(--font-space-grotesk, "Space Grotesk"), sans-serif;
+    font-weight: 600;
+    font-size: clamp(20px, 3vw, 26px);
+    margin-bottom: 0.5rem;
+    color: transparent;
+    background: linear-gradient(90deg, var(--from), var(--to));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-stroke: 0.3px rgba(0, 20, 40, 0.25);
+    text-shadow:
+            0 1px 0 rgba(255,255,255,0.05),
+            0 8px 16px rgba(50,170,220,0.18);
+    animation: popIn 420ms cubic-bezier(.2,.8,.25,1) forwards;
+}
+@keyframes popIn { to { opacity: 1; transform: none; filter: none; } }
+
+.copy {
+    margin-top: 0.5rem;
+    color: hsl(210 40% 96% / 0.94);
+    font-family: var(--font-space-grotesk, "Space Grotesk"), sans-serif;
+    font-weight: 300;
+    font-size: clamp(13.5px, 1.6vw, 15.5px);
+    line-height: 1.75;
+}
+
+.list {
+    margin-top: 0.8rem;
+    display: grid;
+    gap: 0.4rem;
+    color: hsl(210 40% 96% / 0.9);
+    font-weight: 300;
+    font-size: clamp(13px, 1.5vw, 14.5px);
+}
+.dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    box-shadow: 0 0 10px hsl(190 80% 60% / 0.4);
+}
+.dotCyan { background: hsl(190 80% 60%); }
+.dotSky { background: hsl(200 90% 65%); }
+.dotInd { background: hsl(230 85% 70%); }
+
+.chips {
+    margin-top: 1.1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+}
+.chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    font-size: 12.8px;
+    font-weight: 500;
+    border: 1px solid hsl(195 70% 40% / 0.22);
+    background: linear-gradient(180deg, hsl(205 70% 14% / 0.8), hsl(205 60% 10% / 0.75));
+    color: hsl(190 100% 92%);
+    box-shadow:
+            0 10px 30px hsl(195 90% 40% / 0.1),
+            inset 0 1px 0 hsl(0 0% 100% / 0.05);
+    transition: filter 200ms ease, transform 200ms ease;
+}
+.chip:hover {
+    filter: brightness(1.05) saturate(1.08);
+    transform: translateY(-1px);
+}

@@ -57,7 +57,7 @@ export default function ProximityGlowText({
 
     return (
         <div
-            className={`fixed inset-0 z-20 select-none transition-opacity duration-700 ease-out ${
+            className={`fixed inset-0 z-20 select-none pointer-events-none transition-opacity duration-700 ease-out ${
                 hidden ? "opacity-0" : "opacity-100"
             }`}
             aria-hidden

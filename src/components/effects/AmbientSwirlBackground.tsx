@@ -21,7 +21,9 @@ type Props = {
     ringThickness?: number;     
     corePush?: number;          
     maxGatherSpeed?: number;    
-    swirlStrength?: number;     
+    swirlStrength?: number;
+    shiftUp?: boolean;
+    ignoreWhirlpoolSelector?: string;
 };
 
 export default function AmbientSwirlBackground({
@@ -38,11 +40,9 @@ export default function AmbientSwirlBackground({
     whirlpoolSpin = 1.5,
     persistAfterglow = true,
     onWhirlpoolComplete,     
-    ringRadiusRatio = 1.12,  
-    ringThickness = 0.35,    
-    corePush = 1.15,         
-    maxGatherSpeed = 3.0,    
-    swirlStrength = 0.85,    
+    ringRadiusRatio = 1.12,
+    shiftUp = false,
+    ignoreWhirlpoolSelector = "",
     }: Props) {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -340,7 +340,10 @@ export default function AmbientSwirlBackground({
         }
         function onPointer(e: PointerEvent) {
             if (clickLocked) return;
-
+            if (ignoreWhirlpoolSelector) {
+                const el = e.target as Element | null;
+                if (el && el.closest(ignoreWhirlpoolSelector)) return;
+            }
             const rect = B.getBoundingClientRect();
             const x = (e.clientX - rect.left) * (cw / rect.width);
             const y = (e.clientY - rect.top)  * (ch / rect.height);
