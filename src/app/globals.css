@@ -7,4 +7,7 @@ html {
 
 :root {
   --font-space-grotesk: "Space Grotesk";
+  --swapLag: 140ms;     /* default for slide offset delay */
+  --delayMs: 250ms;     /* crossfade delay */
+  --travelMs: 3000ms;   /* slow travel time */
 }

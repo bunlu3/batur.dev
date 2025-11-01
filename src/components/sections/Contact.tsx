@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import styles from "./About.module.css"; // or create Contact.module.css
+import styles from "./About.module.css";
 
 export default function Contact() {
     return (
