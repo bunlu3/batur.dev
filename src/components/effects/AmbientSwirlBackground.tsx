@@ -1,11 +1,12 @@
 ﻿"use client";
-import { useEffect, useRef } from "react";
+
+import React, { useEffect, useRef } from "react";
 import { createNoise3D } from "simplex-noise";
 
 type Props = {
     backgroundColor?: string;
     particleCount?: number;
-    delayMs?: number;       
+    delayMs?: number;
     gatherMs?: number;
     explodeMs?: number;
     holeRadiusRatio?: number;
@@ -17,39 +18,56 @@ type Props = {
     whirlpoolSpin?: number;
     persistAfterglow?: boolean;
     onWhirlpoolComplete?: () => void;
-    ringRadiusRatio?: number;   
-    ringThickness?: number;     
-    corePush?: number;          
-    maxGatherSpeed?: number;    
-    swirlStrength?: number;
+    ringRadiusRatio?: number;
+    ringThickness?: number;   
+    corePush?: number;        
+    maxGatherSpeed?: number;  
+    swirlStrength?: number;   
     shiftUp?: boolean;
     ignoreWhirlpoolSelector?: string;
 };
 
-export default function AmbientSwirlBackground({
-    backgroundColor = "hsla(210,40%,5%,1)",
-    particleCount = 2000,
-    gatherMs = 2500,
-    explodeMs = 1800,
-    holeRadiusRatio = 0.22,
-    explosionBase = 7,
-    explosionSpread = 4,
-    explosionDecay = 0.986,
-    afterglowNoise = 0.08,
-    afterglowSpeed = 0.33,
-    whirlpoolSpin = 1.5,
-    persistAfterglow = true,
-    onWhirlpoolComplete,     
-    ringRadiusRatio = 1.12,
-    shiftUp = false,
-    ignoreWhirlpoolSelector = "",
-    }: Props) {
+function AmbientSwirlBackgroundImpl({
+   backgroundColor = "hsla(210,40%,5%,1)",
+   particleCount = 2000,
+   gatherMs = 2500,
+   explodeMs = 1800,
+   holeRadiusRatio = 0.22,
+   explosionBase = 7,
+   explosionSpread = 4,
+   explosionDecay = 0.986,
+   afterglowNoise = 0.08,
+   afterglowSpeed = 0.33,
+   whirlpoolSpin = 1.5,
+   persistAfterglow = true,
+   onWhirlpoolComplete,
+   ringRadiusRatio = 1.12,
+   shiftUp = false,
+   ignoreWhirlpoolSelector = "",
+   }: Props) {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        if (!containerRef.current) return;
+    const didInit = useRef(false);
+    const rafRef = useRef<number | null>(null);
+    const onDoneRef = useRef<typeof onWhirlpoolComplete>(onWhirlpoolComplete);
+    const ignoreSelRef = useRef(ignoreWhirlpoolSelector);
+    const shiftUpRef = useRef(shiftUp);
 
-        let ringR = 0;
+    useEffect(() => { onDoneRef.current = onWhirlpoolComplete; }, [onWhirlpoolComplete]);
+    useEffect(() => { ignoreSelRef.current = ignoreWhirlpoolSelector; }, [ignoreWhirlpoolSelector]);
+    useEffect(() => {
+        shiftUpRef.current = shiftUp;
+        const el = containerRef.current;
+        if (el) el.style.setProperty("--swirlShiftY", shiftUp ? "-10vh" : "0vh");
+    }, [shiftUp]);
+
+    useEffect(() => {
+        if (didInit.current) return;
+        didInit.current = true;
+
+        const root = containerRef.current;
+        if (!root) return;
+
         const PROP = 9;
         const LEN = particleCount * PROP;
         const rangeY = 100;
@@ -71,20 +89,27 @@ export default function AmbientSwirlBackground({
             const hm = 0.5 * m;
             return Math.abs(((t + hm) % m) - hm) / hm;
         };
-        let clickLocked = false;
-        let tick = 0, raf = 0;
+
+        let tick = 0, ringR = 0;
+        let dpr = Math.max(1, window.devicePixelRatio || 1);
+        let cw = window.innerWidth;
+        let ch = window.innerHeight;
+        const center: [number, number] = [0, 0];
+        let holeR = 120;
+
         const noise3D = createNoise3D();
         const props = new Float32Array(LEN);
+        const exVX = new Float32Array(particleCount);
+        const exVY = new Float32Array(particleCount);
+        let explosionPrimed = false;
 
         type Phase = "swirl" | "gather" | "explode" | "afterglow";
         let phase: Phase = "swirl";
         let phaseStart = performance.now();
         let gatherT = 0;
         let elapsedBlend = 0;
-
-        const exVX = new Float32Array(particleCount);
-        const exVY = new Float32Array(particleCount);
-        let explosionPrimed = false;
+        let clickLocked = false;
+        let completedEmitted = false;
 
         const A = document.createElement("canvas");
         const B = document.createElement("canvas");
@@ -93,19 +118,12 @@ export default function AmbientSwirlBackground({
         a.imageSmoothingEnabled = false;
         b.imageSmoothingEnabled = false;
 
-        let dpr = Math.max(1, window.devicePixelRatio || 1);
-        let cw = window.innerWidth;  
-        let ch = window.innerHeight;
-
-        const center: [number, number] = [0, 0];
-        let holeR = 120;
-
         B.style.position = "fixed";
         B.style.inset = "0";
         B.style.width = "100%";
         B.style.height = "100%";
         B.style.zIndex = "-1";
-        containerRef.current.appendChild(B);
+        root.appendChild(B);
 
         function resize() {
             cw = window.innerWidth;
@@ -119,9 +137,6 @@ export default function AmbientSwirlBackground({
 
             a.setTransform(dpr, 0, 0, dpr, 0, 0);
             b.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-            B.style.width = "100%";
-            B.style.height = "100%";
 
             center[0] = 0.5 * cw;
             center[1] = 0.5 * ch;
@@ -151,8 +166,8 @@ export default function AmbientSwirlBackground({
         }
 
         function drawSeg(
-            x:number, y:number, x2:number, y2:number,
-            life:number, ttl:number, r:number, hue:number, alpha?:number
+            x: number, y: number, x2: number, y2: number,
+            life: number, ttl: number, r: number, hue: number, alpha?: number
         ) {
             if (crossesSeam(x, y, x2, y2)) return;
 
@@ -176,6 +191,7 @@ export default function AmbientSwirlBackground({
             a.stroke();
             a.restore();
         }
+
         function primeExplosion() {
             for (let p = 0; p < particleCount; p++) {
                 const i = p * PROP;
@@ -261,6 +277,7 @@ export default function AmbientSwirlBackground({
                 props[i3] = vx; props[i4] = vy; props[i5] = life + 1;
                 return;
             }
+
             const x2 = x + vx * baseSpd, y2 = y + vy * baseSpd;
             drawSeg(x, y, x2, y2, life, ttl, rad, hue);
             const [nxp, nyp] = wrap(x2, y2);
@@ -269,7 +286,6 @@ export default function AmbientSwirlBackground({
             if ((nxp !== x2 || nyp !== y2) || life > ttl) initParticle(i);
         }
 
-        let completedEmitted = false;
         function frame() {
             const now = performance.now();
             const elapsed = now - phaseStart;
@@ -287,18 +303,16 @@ export default function AmbientSwirlBackground({
                 if (elapsed > explodeMs) {
                     phase = "afterglow";
                     phaseStart = now;
-                    clickLocked = false;    
+                    clickLocked = false;
                     if (!completedEmitted) {
                         completedEmitted = true;
-                        try { onWhirlpoolComplete?.(); } catch {}
+                        try { onDoneRef.current?.(); } catch {}
                     }
                 }
             } else if (phase === "afterglow") {
-                if (!persistAfterglow) {   
-                }
             } else {
                 gatherT = 0;
-                clickLocked = false;      
+                clickLocked = false;
             }
 
             tick++;
@@ -309,27 +323,17 @@ export default function AmbientSwirlBackground({
 
             for (let i = 0; i < LEN; i += PROP) update(i);
 
-            b.save();
-            b.globalCompositeOperation = "source-over";
-            b.filter = "none";
-            b.drawImage(A, 0, 0, cw, ch);
-            b.restore();
+            b.save(); b.globalCompositeOperation = "source-over"; b.filter = "none"; b.drawImage(A, 0, 0, cw, ch); b.restore();
+            b.save(); b.globalCompositeOperation = "lighter"; b.filter = "blur(0.9px) brightness(140%)"; b.globalAlpha = 0.45; b.drawImage(A, 0, 0, cw, ch); b.restore();
+            b.save(); b.globalCompositeOperation = "lighter"; b.filter = "blur(3px) brightness(200%)"; b.drawImage(A, 0, 0, cw, ch); b.restore();
+            b.save(); b.globalCompositeOperation = "lighter"; b.filter = "blur(1.5px) brightness(150%)"; b.drawImage(A, 0, 0, cw, ch); b.restore();
+            b.save(); b.globalCompositeOperation = "lighter"; b.filter = "none"; b.drawImage(A, 0, 0, cw, ch); b.restore();
 
-            b.save();
-            b.globalCompositeOperation = "lighter";
-            b.filter = "blur(0.9px) brightness(140%)";
-            b.globalAlpha = 0.45;
-            b.drawImage(A, 0, 0, cw, ch);
-            b.restore();
-            b.save(); b.filter = "blur(3px) brightness(200%)"; b.globalCompositeOperation = "lighter"; b.drawImage(A, 0, 0, cw, ch); b.restore();
-            b.save(); b.filter = "blur(1.5px) brightness(150%)"; b.globalCompositeOperation = "lighter"; b.drawImage(A, 0, 0, cw, ch); b.restore();
-            b.save(); b.filter = "none"; b.globalCompositeOperation = "lighter"; b.drawImage(A, 0, 0, cw, ch); b.restore();
-
-            raf = window.requestAnimationFrame(frame);
+            rafRef.current = requestAnimationFrame(frame);
         }
 
         function startWhirlpoolAt(x: number, y: number) {
-            if (clickLocked) return; 
+            if (clickLocked) return;
             clickLocked = true;
             center[0] = x;
             center[1] = y;
@@ -338,38 +342,50 @@ export default function AmbientSwirlBackground({
             elapsedBlend = 0;
             explosionPrimed = false;
         }
+
         function onPointer(e: PointerEvent) {
             if (clickLocked) return;
-            if (ignoreWhirlpoolSelector) {
-                const el = e.target as Element | null;
-                if (el && el.closest(ignoreWhirlpoolSelector)) return;
-            }
+            const target = e.target as Element | null;
+            const ignoreSel = ignoreSelRef.current;
+            if (ignoreSel && target && target.closest(ignoreSel)) return;
+
             const rect = B.getBoundingClientRect();
             const x = (e.clientX - rect.left) * (cw / rect.width);
             const y = (e.clientY - rect.top)  * (ch / rect.height);
-
             startWhirlpoolAt(x, y);
         }
 
         resize();
-        raf = window.requestAnimationFrame(frame);
+        rafRef.current = requestAnimationFrame(frame);
         window.addEventListener("resize", resize);
         window.addEventListener("pointerdown", onPointer, { passive: true });
         B.addEventListener("pointerdown", onPointer, { passive: true });
 
         return () => {
-            window.cancelAnimationFrame(raf);
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
             window.removeEventListener("resize", resize);
             window.removeEventListener("pointerdown", onPointer);
             B.removeEventListener("pointerdown", onPointer);
-            try { containerRef.current?.removeChild(B); } catch {}
+            try { root.removeChild(B); } catch {}
         };
-    }, [
-        backgroundColor, particleCount,
-        gatherMs, explodeMs,
-        holeRadiusRatio, explosionBase, explosionSpread, explosionDecay,
-        afterglowNoise, afterglowSpeed, whirlpoolSpin, persistAfterglow, onWhirlpoolComplete
-    ]);
+        
+    }, []);
 
-    return <div ref={containerRef} aria-hidden className="fixed inset-0 -z-10" />;
+    return (
+        <div
+            ref={containerRef}
+            aria-hidden
+            style={{
+                position: "fixed",
+                left: 0,
+                right: 0,
+                top: "calc(var(--swirlShiftY, 0vh))",
+                bottom: "calc(-1 * var(--swirlShiftY, 0vh))",
+                zIndex: 0,
+                pointerEvents: "none",
+            }}
+        />
+    );
 }
+
+export default React.memo(AmbientSwirlBackgroundImpl, (p, n) => p.shiftUp === n.shiftUp);
