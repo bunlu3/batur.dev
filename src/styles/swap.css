@@ -1,0 +1,53 @@
+﻿/* === Letter Swap (GLOBAL) ===============================================
+   Usage:
+     <a class="swap-animate"><SwapText text="LinkedIn" /></a>
+   ======================================================================= */
+
+:root { --swap-stagger: 22ms; } /* per-character delay */
+
+.swap-animate .swap {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    perspective: 600px;
+    font-variant-ligatures: none;     /* avoid fi/ffi ligatures widening cells */
+}
+
+/* Natural-width cells: grid lets both layers overlap without forcing a width */
+.swap-animate .swap__char {
+    display: inline-grid;
+    align-items: center;
+    height: 1em;                      /* vertical box */
+    overflow: hidden;
+}
+
+/* Both layers sit in the same grid cell */
+.swap-animate .swap__front,
+.swap-animate .swap__back {
+    grid-area: 1 / 1;
+    will-change: transform, opacity;
+    transition: transform 360ms cubic-bezier(.2,.8,.25,1), opacity 360ms ease;
+}
+
+/* initial state */
+.swap-animate .swap__front { transform: translateY(0%);   opacity: 1; }
+.swap-animate .swap__back  { transform: translateY(110%); opacity: 0; }
+
+/* hover/focus: slide the front up, back comes from below (staggered) */
+.swap-animate:hover .swap__front,
+.swap-animate:focus-visible .swap__front {
+    transform: translateY(-110%);
+    opacity: 0;
+    transition-delay: calc(var(--ci) * var(--swap-stagger));
+}
+.swap-animate:hover .swap__back,
+.swap-animate:focus-visible .swap__back {
+    transform: translateY(0%);
+    opacity: 1;
+    transition-delay: calc(var(--ci) * var(--swap-stagger));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .swap-animate .swap__front,
+    .swap-animate .swap__back { transition: none; }
+}

@@ -1,10 +1,4 @@
 @import "tailwindcss/preflight";
 @import "tailwindcss/utilities";
-
-html {
-  scroll-behavior: smooth;
-}
-
-:root {
-  --font-space-grotesk: "Space Grotesk";
-}
+@import "../styles/swap.css";
+@import "../styles/animations.css";
