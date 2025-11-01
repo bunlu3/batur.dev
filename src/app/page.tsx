@@ -3,20 +3,17 @@ import { useState } from "react";
 import AmbientSwirlBackground from "@/components/effects/AmbientSwirlBackground";
 import ProximityGlowText from "@/components/ui/ProximityGlowText";
 import IntroOverlay from "@/components/ui/IntroOverlay";
-import About from "@/components/sections/About";
 
 export default function Page() {
     const [showIntro, setShowIntro] = useState(false);
-    const [leaving, setLeaving] = useState(false);
-    const [showAbout, setShowAbout] = useState(false);
-    const [shiftParticles, setShiftParticles] = useState(false);
+    const [leavingHero, setLeavingHero] = useState(false);
+    const [overlayKey, setOverlayKey] = useState(0);
 
-    function handleAbout() {
-        setLeaving(true);
-        setShiftParticles(true);
+    function handleContinue() {
+        setLeavingHero(true);
         setTimeout(() => {
             setShowIntro(false);
-            setShowAbout(true);
+            setLeavingHero(false);
         }, 720);
     }
 
@@ -34,19 +31,27 @@ export default function Page() {
                 afterglowNoise={0.3}
                 afterglowSpeed={0.3}
                 whirlpoolSpin={2.5}
-                persistAfterglow={true}
-                onWhirlpoolComplete={() => setShowIntro(true)}
-                shiftUp={shiftParticles}
+                persistAfterglow
+                onWhirlpoolComplete={() => {
+                    setOverlayKey((k) => k + 1);
+                    setShowIntro(true);
+                }}
                 ignoreWhirlpoolSelector=".no-whirlpool"
+                shiftUp={leavingHero}
             />
 
-            <ProximityGlowText forceHide={showIntro && !showAbout} />
+            <ProximityGlowText forceHide={showIntro} />
 
-            {showIntro && !showAbout && (
-                <IntroOverlay show={showIntro} isLeaving={leaving} onAbout={handleAbout} />
+            {showIntro && (
+                <div className="no-whirlpool">
+                    <IntroOverlay
+                        key={overlayKey}
+                        show={showIntro}
+                        isLeaving={leavingHero}
+                        onAbout={handleContinue}
+                    />
+                </div>
             )}
-
-            {showAbout && <About />}
 
             <main className="pointer-events-none relative z-10 grid min-h-screen place-items-center" />
         </>
