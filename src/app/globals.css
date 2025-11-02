@@ -2,3 +2,7 @@
 @import "tailwindcss/utilities";
 @import "../styles/swap.css";
 @import "../styles/animations.css";
+@import  "../components/sections/EarthScrollSection/EarthSectionPanel.module.css";
+@import  "../components/sections/EarthScrollSection/SceneGate.module.css";
+
+@keyframes fadeIn { to { opacity: 1 } }
