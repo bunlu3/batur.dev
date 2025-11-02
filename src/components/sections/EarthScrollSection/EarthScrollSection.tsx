@@ -8,12 +8,14 @@ import useSectionProgress from "@/hooks/useSectionProgress";
 import SceneGateOverlay from "@/components/sections/EarthScrollSection/SceneGateOverlay";
 import SwapText from "@/components/ui/SwapText";
 
-const TURKEY_LAT = 39.0;
+const TURKEY_LAT = 43.0;
 const TURKEY_LON = 35.0;
 const LON_OFFSET_DEG = -165; 
 const LAT_OFFSET_DEG = -20;  
 const ROLL_OFFSET_DEG = -35; 
 const FLIP_LON = false;
+const START_Y = -1.2;
+const MID_Y   = 0.10;
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const smoothstep = (a: number, b: number, t: number) => {
     const x = clamp01((t - a) / (b - a));
@@ -40,6 +42,11 @@ function Earth({ progress, onReady }: { progress: number; onReady?: () => void }
         night: "/textures/earth_night.jpg",
         clouds: "/textures/earth_clouds.jpg",
     });
+
+    useEffect(() => {
+        if (!groupRef.current) return;
+        groupRef.current.position.set(0, START_Y, 0);
+    }, []);
 
     useEffect(() => {
         if (!tex.color || !tex.bump) return;
@@ -166,9 +173,17 @@ function Earth({ progress, onReady }: { progress: number; onReady?: () => void }
             new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), spin)
         );
 
+        const yRise = THREE.MathUtils.lerp(START_Y, MID_Y, a);
+        groupRef.current.position.y = THREE.MathUtils.damp(
+            groupRef.current.position.y,
+            yRise,
+            6,
+            dt
+        );
+
         // PHASE B
         const b = smoothstep(0.6, 0.85, progress);
-        const additionalRotation = b * 0.65;
+        const additionalRotation = b * 0.90;
         qNow.premultiply(
             new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), additionalRotation)
         );
@@ -176,22 +191,9 @@ function Earth({ progress, onReady }: { progress: number; onReady?: () => void }
         globeRef.current.quaternion.copy(qNow);
 
         // PHASE B
-        const xTarget = THREE.MathUtils.lerp(0, -1.0, b);
-        const yTarget = THREE.MathUtils.lerp(0, 0.1, b);
-        groupRef.current.position.x = THREE.MathUtils.damp(
-            groupRef.current.position.x,
-            xTarget,
-            6,
-            dt
-        );
-        groupRef.current.position.y = THREE.MathUtils.damp(
-            groupRef.current.position.y,
-            yTarget,
-            6,
-            dt
-        );
+        const xTarget = THREE.MathUtils.lerp(0, -1.4, b);
+        groupRef.current.position.x = THREE.MathUtils.damp(groupRef.current.position.x, xTarget, 6, dt);
 
-        // PHASE B
         const scaleTarget = THREE.MathUtils.lerp(1.0, 1.4, b);
         groupRef.current.scale.setScalar(
             THREE.MathUtils.damp(
