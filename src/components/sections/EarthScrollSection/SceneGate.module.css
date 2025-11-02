@@ -107,10 +107,10 @@
 }
 
 /* make the inner swap layers inherit the gradient (module-safe) */
-.title :global(.swap__front),
-.title :global(.swap__back),
-.sub   :global(.swap__front),
-.sub   :global(.swap__back) {
+.title .swap__front,
+.title .swap__back,
+.sub .swap__front,
+.sub .swap__back {
     color: transparent;
     background: inherit;
     -webkit-background-clip: text;
@@ -118,9 +118,9 @@
     -webkit-text-fill-color: transparent;
 }
 
-/* idle loop so it animates without hover */
-.titleWrap :global(.swap__front),
-.titleWrap :global(.swap__back) {
+/* ✅ global-safe */
+.titleWrap .swap__front,
+.titleWrap .swap__back {
     animation: swapLoop 3.2s cubic-bezier(.2,.8,.25,1) infinite;
     animation-delay: calc(var(--ci) * var(--swap-stagger, 22ms));
 }
@@ -152,8 +152,8 @@
 }
 
 /* subline: very gentle loop (optional) */
-.subWrap :global(.swap__front),
-.subWrap :global(.swap__back) {
+.subWrap .swap__front,
+.subWrap .swap__back {
     animation: swapLoopSub 4.8s cubic-bezier(.2,.8,.25,1) infinite;
     animation-delay: calc(var(--ci) * var(--swap-stagger, 22ms));
 }
@@ -180,10 +180,10 @@
 
 /* accessibility */
 @media (prefers-reduced-motion: reduce) {
-    .titleWrap :global(.swap__front),
-    .titleWrap :global(.swap__back),
-    .subWrap   :global(.swap__front),
-    .subWrap   :global(.swap__back),
+    .titleWrap .swap__front,
+    .titleWrap .swap__back,
+    .subWrap   .swap__front,
+    .subWrap   .swap__back,
     .ring,
     .barInner,
     .stars1, .stars2, .stars3 { animation: none !important; }
