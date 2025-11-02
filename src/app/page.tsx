@@ -1,23 +1,43 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useTexture } from "@react-three/drei";
 import AmbientSwirlBackground from "@/components/effects/AmbientSwirlBackground";
 import ProximityGlowText from "@/components/ui/ProximityGlowText";
 import IntroOverlay from "@/components/ui/IntroOverlay";
-import About from "@/components/sections/About";
+import EarthScrollSection from "@/components/sections/EarthScrollSection/EarthScrollSection";
+
+function usePreloadEarthTextures() {
+    // lightweight, runs once at page mount so textures are in cache
+    useEffect(() => {
+        useTexture.preload("/textures/earth_color.jpg");
+        useTexture.preload("/textures/earth_bump.jpg");
+        useTexture.preload("/textures/earth_night.jpg");
+        useTexture.preload("/textures/earth_clouds.jpg");
+    }, []);
+}
 
 export default function Page() {
+    usePreloadEarthTextures();
+
     const [showIntro, setShowIntro] = useState(false);
     const [leavingHero, setLeavingHero] = useState(false);
     const [overlayKey, setOverlayKey] = useState(0);
-    const [showAbout, setShowAbout] = useState(false);
+    const [showEarth, setShowEarth] = useState(false);
+    const earthRef = useRef<HTMLElement | null>(null);
+
     const handleContinue = () => {
-        setLeavingHero(true);             
+        setLeavingHero(true);
         setTimeout(() => {
-            setShowIntro(false);            
-            setShowAbout(true);              
-            setLeavingHero(false);       
-        }, 720);
+            setShowIntro(false);
+            setTimeout(() => setShowEarth(true), 300);
+        }, 700);
     };
+
+    useEffect(() => {
+        if (showEarth && earthRef.current) {
+            earthRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, [showEarth]);
 
     return (
         <>
@@ -36,10 +56,10 @@ export default function Page() {
                 persistAfterglow
                 onWhirlpoolComplete={() => {
                     setOverlayKey((k) => k + 1);
-                    setShowIntro(true);         
+                    setShowIntro(true);
                 }}
                 ignoreWhirlpoolSelector=".no-whirlpool"
-                shiftUp={leavingHero}        
+                shiftUp={leavingHero}
             />
 
             <ProximityGlowText forceHide={showIntro} />
@@ -55,9 +75,15 @@ export default function Page() {
                 </div>
             )}
 
-            {showAbout && <About />}
+            {showEarth && (
+                <section
+                    ref={earthRef as any}
+                    style={{ opacity: 0, animation: "fadeIn .35s ease forwards" }}
+                >
+                    <EarthScrollSection />
+                </section>
+            )}
 
-            {/* keeps layout height; does not intercept clicks */}
             <main className="pointer-events-none relative z-10 grid min-h-screen place-items-center" />
         </>
     );

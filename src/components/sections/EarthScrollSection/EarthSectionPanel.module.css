@@ -1,0 +1,38 @@
+﻿.soonText {
+    --from: hsl(191 100% 90%);
+    --to:   hsl(188 90% 68%);
+
+    font-family: var(--font-space-grotesk,"Space Grotesk"),ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial,"Noto Sans";
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+    font-size: clamp(18px, 3vw, 32px);
+
+    color: transparent;
+    background: linear-gradient(90deg, var(--from), var(--to));
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    -webkit-text-stroke: 0.2px rgba(0,20,40,.28);
+    text-shadow:
+            0 1px 0 rgba(255,255,255,.04),
+            0 8px 16px rgba(50,170,220,.16);
+}
+
+.soonText .swap__front,
+.soonText .swap__back {
+    color: transparent;
+    background: inherit;
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.soonTextWrap {
+    transform: translateY(2px) scale(.995);
+    filter: blur(1px);
+    opacity: 0;
+    animation: soonPolish 360ms cubic-bezier(.2,.8,.25,1) forwards;
+}
+@keyframes soonPolish {
+    to { transform: none; filter: none; opacity: 1; }
+}
